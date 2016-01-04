@@ -1,0 +1,390 @@
+
+<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+<!--  <link rel="stylesheet" href="/css/main.css" />-->
+
+
+<style>
+body{
+	margin: 0px;
+	overflow: hidden;
+}
+
+.viewport{
+	border:2px solid yellow;
+	position: fixed;
+	//top: 50%;
+	//left:50%;
+	//height: 1000px;
+	//width:1000px;
+	
+
+
+}
+
+.viewportAsteroids{
+	border:2px solid green;
+	position: absolute;
+}
+
+.viewportAsteroids canvas{
+	border:2px solid pink;
+}
+.viewport canvas{
+	border:2px solid blue;
+}
+
+</style>
+</head>
+<body>
+  <div class="viewportAsteroids"></div>
+  <div class="viewport"></div>
+
+  <script src="js/three.min.js"></script>
+
+		<script src="js/renderers/Projector.js"></script>
+		<script src="js/renderers/CanvasRenderer.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="js/libs/tween.min.js"></script>
+		<script src="js/controls/TrackballControls.js"></script>
+		<script src="js/loaders/OBJLoader.js"></script>
+		<script src="js/jquery.js"></script>
+		<!--<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>-->
+
+		<script src="js/sketch.min.js"></script>
+		<script src="js/script.js"></script>
+
+  <script>
+
+
+var container, scene, renderer,  camera, light, clock, loader;
+var mouseX = 0, mouseY = 0;
+
+var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
+
+container = document.querySelector('.viewport');
+
+clock = new THREE.Clock();
+
+
+WIDTH =  window.innerWidth/1,
+HEIGHT = window.innerHeight/1;
+
+window.scrollTo(HEIGHT/2, WIDTH/2);
+
+VIEW_ANGLE = 45,
+ASPECT = WIDTH / HEIGHT,
+NEAR = 1,
+FAR = 1000000;
+
+
+scene = new THREE.Scene();
+
+
+renderer = new THREE.WebGLRenderer({  alpha: true  });
+
+
+
+function init(){
+	renderer.setSize(WIDTH, HEIGHT);
+
+	renderer.shadowMapEnabled = true;
+	renderer.shadowMapSoft = true;
+	renderer.shadowMapType = THREE.PCFShadowMap;
+	renderer.shadowMapAutoUpdate = true;
+
+
+	container.appendChild(renderer.domElement);  //ADDS NEW CANVAS Y!>???? 
+	console.log(renderer.domElement);
+	console.log(renderer);
+
+
+	camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+
+	camera.position.set(0, 200, 2500);
+	//camera.rotation.x = -Math.PI / 12;
+
+	scene.add(camera);
+
+	light = new THREE.DirectionalLight(0xffffff);
+
+	light.position.set(0, 100, 60);
+	light.castShadow = true;
+	light.shadowCameraLeft = -60;
+	light.shadowCameraTop = -60;
+	light.shadowCameraRight = 60;
+	light.shadowCameraBottom = 60;
+	light.shadowCameraNear = 1;
+	light.shadowCameraFar = 1000;
+	light.shadowBias = -.0001
+	light.shadowMapWidth = light.shadowMapHeight = 1024;
+	light.shadowDarkness = .7;
+
+	scene.add(light);
+
+	loader = new THREE.JSONLoader();
+	var mesh;
+	loader.load('models/space-shuttle-orbiter/space-shuttle-orbiter.js', function (geometry, materials) {
+		var material = new THREE.MeshLambertMaterial({
+			map: THREE.ImageUtils.loadTexture('models/space-shuttle-orbiter/spstob_1.jpg'),   
+			colorAmbient: [0.480000026226044, 0.480000026226044, 0.480000026226044],
+			colorDiffuse: [0.480000026226044, 0.480000026226044, 0.480000026226044],
+			colorSpecular: [0.8999999761581421, 0.8999999761581421, 0.8999999761581421]
+		});
+
+		mesh = new THREE.Mesh(
+			geometry,
+			material
+		);
+
+		mesh.receiveShadow = true;
+		mesh.castShadow = true;
+		//mesh.rotation.y = -Math.PI/5;
+		
+		//mesh.name = mesh.id;
+
+		scene.add(mesh);
+
+		
+	//	createAsteroid();
+		console.log('in ship')
+
+		render(); 
+
+		console.log( renderer.domElement)
+
+	});
+	//createAsteroid();
+
+
+}
+
+function render() {
+	var time = clock.getElapsedTime();
+	//mesh.rotation.y += .0;
+	//var mesh = scene.getObjectByName( meshId, true )
+	//asteriodMesh.rotation.y += .001;
+	//asteriodMesh.rotation.x += .001;
+	//asteriodMesh.rotation.z += .001;
+
+
+
+	camera.position.x += ( mouseX - camera.position.x ) * 0.105;
+	camera.position.y += ( - mouseY - camera.position.y ) * 0.105;
+	camera.lookAt( scene.position );
+
+
+	renderer.render(scene, camera);
+	requestAnimationFrame(render);
+}
+
+
+
+
+var containerAst, asteroidScene, rendererAst, cameraAst, lightAst, clockAst, loaderAst, asteriodMesh, asteroidName;
+var mouseAstX = 0, mouseAstY = 0;
+
+containerAst = document.querySelector('.viewportAsteroids');
+rendererAst = new THREE.WebGLRenderer({  alpha: true  });
+asteroidScene = new THREE.Scene();
+
+
+
+
+
+
+
+
+initAsteroid();
+init()
+
+
+
+
+document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+document.addEventListener("click", moveAsteroid, false);
+
+
+function onDocumentMouseMove( event ) {
+	mouseX = event.clientX - WIDTH/2;
+	mouseY = event.clientY - HEIGHT/2;	
+}
+
+
+function moveAsteroid( event ) {
+	mouseAstX = 2*(event.clientX - WIDTH/2)+ mouseAstX;
+	mouseAstY = 2*(event.clientY - HEIGHT/2)+ mouseAstY;
+	//var name = asteroidScene.getObjectByName( asteroidName, true )
+	//console.log(asteroidScene);
+	//console.log(asteriodMesh);
+	//console.log(asteroidName);
+	//console.log(name);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function initAsteroid(){
+	rendererAst.setSize(WIDTH, HEIGHT);
+
+	rendererAst.shadowMapEnabled = true;
+	rendererAst.shadowMapSoft = true;
+	rendererAst.shadowMapType = THREE.PCFShadowMap;
+	rendererAst.shadowMapAutoUpdate = true;
+
+
+	containerAst.appendChild(rendererAst.domElement);  //ADDS NEW CANVAS Y!>???? 
+	console.log(rendererAst.domElement);
+	console.log(rendererAst);
+
+
+	cameraAst = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+
+	cameraAst.position.set(0, 0, 2500);
+	//camera.rotation.x = -Math.PI / 12;
+
+	asteroidScene.add(cameraAst);
+
+	lightAst = new THREE.DirectionalLight(0xffffff);
+
+	lightAst.position.set(0, 100, 60);
+	lightAst.castShadow = true;
+	lightAst.shadowCameraLeft = -60;
+	lightAst.shadowCameraTop = -60;
+	lightAst.shadowCameraRight = 60;
+	lightAst.shadowCameraBottom = 60;
+	lightAst.shadowCameraNear = 1;
+	lightAst.shadowCameraFar = 1000;
+	lightAst.shadowBias = -.0001
+	lightAst.shadowMapWidth = lightAst.shadowMapHeight = 1024;
+	lightAst.shadowDarkness = .7;
+
+	asteroidScene.add(lightAst);
+
+
+	
+	loaderAst = new THREE.JSONLoader();
+	//var mesh;
+	loaderAst.load('models/asteroid_OBJ/asteroid_OBJ.js', function (geometry, materials) {
+		
+		var material = new THREE.MeshLambertMaterial({
+			//map: THREE.ImageUtils.loadTexture('models/space-shuttle-orbiter/spstob_1.jpg'),   
+			colorAmbient: [0.480000026226044, 0.480000026226044, 0.480000026226044],
+			colorDiffuse: [0.480000026226044, 0.480000026226044, 0.480000026226044],
+			colorSpecular: [0.8999999761581421, 0.8999999761581421, 0.8999999761581421]
+		});
+
+		asteriodMesh = new THREE.Mesh(
+			geometry,
+			material
+		);
+
+		asteriodMesh.receiveShadow = true;
+		asteriodMesh.castShadow = true;
+		//mesh.rotation.y = -Math.PI/5;
+
+		asteriodMesh.scale.x = 40;
+		asteriodMesh.scale.y = 40;
+		asteriodMesh.scale.z = 40;
+
+		var x = Math.floor((Math.random() * 4000)-2000); 
+		var y = Math.floor((Math.random() * 3000)-1000);
+		flyIt(0, 0 ,-10000);
+		
+		asteroidScene.add(asteriodMesh);
+		renderAst()
+	})
+}
+
+
+function flyIt(x, y, z){
+
+	asteroidName = 'asteroid_'+asteriodMesh.id;
+	asteriodMesh.name = asteroidName;
+	var id = setInterval(function() {
+		asteriodMesh.position.set( x, y, z)
+		z = z + 30;
+		if (z > 5000) {
+			clearInterval(id)
+			//asteroidName = '';    
+			//createAsteroid();
+			}
+	}, 10)
+
+}
+
+function renderAst() {
+	asteriodMesh.rotation.y += .001;
+	asteriodMesh.rotation.x += .001;
+	asteriodMesh.rotation.z += .001;
+
+	cameraAst.position.x += ( mouseAstX - cameraAst.position.x ) * 0.05;
+	cameraAst.position.y += ( - mouseAstY - cameraAst.position.y ) * 0.05;
+
+	//camera.lookAt( asteroidScene.position ); WTF? -This makes the camera lookAt the vector position in the global space as long as the parent of this camera is the scene or at position (0,0,0).
+
+	rendererAst.render(asteroidScene, cameraAst);
+	requestAnimationFrame(renderAst);
+}
+
+
+
+
+
+//document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+//document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+/*
+function onDocumentTouchStart( event ) {
+	console.log('start');
+	if ( event.touches.length == 1 ) {
+		event.preventDefault();
+		mouseX = event.touches[ 0 ].pageX - WIDTH/2;
+		mouseY = event.touches[ 0 ].pageY - HEIGHT/2;
+	}
+}
+
+function onDocumentTouchMove( event ) {
+	console.log('move');
+
+	if ( event.touches.length == 1 ) {
+		event.preventDefault();
+		mouseX = event.touches[ 0 ].pageX - WIDTH/2;;
+		mouseY = event.touches[ 0 ].pageY - HEIGHT/2;
+	}
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+  </script>
+</body>
+</html>
+
+
+
+
+
+
